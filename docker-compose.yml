@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    container_name: pendragon_web
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+  db:
+    image: postgres:16
+    container_name: pendragon_db
+    environment:
+      POSTGRES_USER: portal_user
+      POSTGRES_PASSWORD: portal_password
+      POSTGRES_DB: portal_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
