@@ -1,12 +1,12 @@
 from app.db.session import SessionLocal
 from app.models.company import Company
 from app.models.equipment import Equipment
-from app.models.user import User, UserRole
 from app.models.service_job import (
     JobStatus,
     JobType,
     ServiceJob,
 )
+from app.models.user import User, UserRole
 
 
 def seed_companies(session):
@@ -37,27 +37,152 @@ def seed_users(session):
     biolab = get_company(session, "BioLab Ltd")
 
     users = [
-        ("Adam", "Admin", "adam@pendragon.co.uk", UserRole.PENDRAGON_ADMIN, pendragon),
-        ("Rachael", "Admin", "rachael@pendragon.co.uk", UserRole.PENDRAGON_ADMIN, pendragon),
-        ("Caroline", "Admin", "caroline@pendragon.co.uk", UserRole.PENDRAGON_ADMIN, pendragon),
-        ("Richard", "Manager", "richard@pendragon.co.uk", UserRole.PENDRAGON_MANAGER, pendragon),
-        ("Remi", "Manager", "remi@pendragon.co.uk", UserRole.PENDRAGON_MANAGER, pendragon),
-        ("Jake", "Engineer", "jake@pendragon.co.uk", UserRole.PENDRAGON_ENGINEER, pendragon),
-        ("Russell", "Engineer", "russell@pendragon.co.uk", UserRole.PENDRAGON_ENGINEER, pendragon),
-        ("Sarah", "Office", "sarah@pendragon.co.uk", UserRole.PENDRAGON_OFFICE_ADMIN, pendragon),
-        ("Ashleigh", "Office", "ashleigh@pendragon.co.uk", UserRole.PENDRAGON_OFFICE_ADMIN, pendragon),
-
-        ("John", "Williams", "john.williams@oxford.example.com", UserRole.CUSTOMER_USER, oxford),
-        ("Emily", "Carter", "emily.carter@oxford.example.com", UserRole.CUSTOMER_USER, oxford),
-
-        ("Sarah", "Collins", "sarah.collins@nhsbristol.example.com", UserRole.CUSTOMER_USER, nhs),
-        ("Daniel", "Green", "daniel.green@nhsbristol.example.com", UserRole.CUSTOMER_USER, nhs),
-
-        ("Lisa", "Turner", "lisa.turner@biolab.example.com", UserRole.CUSTOMER_USER, biolab),
-        ("Michael", "Harris", "michael.harris@biolab.example.com", UserRole.CUSTOMER_USER, biolab),
+        (
+            "Adam",
+            "Johns",
+            "adamjohns2006@icloud.com",
+            "Software Developer",
+            "AJ",
+            UserRole.PENDRAGON_ADMIN,
+            pendragon,
+        ),
+        (
+            "Rachael",
+            "Johns",
+            "rachael@pendragonscientific.com",
+            "Director",
+            "RJ",
+            UserRole.PENDRAGON_ADMIN,
+            pendragon,
+        ),
+        (
+            "Caroline",
+            "Jones",
+            "caroline@pendragonscientific.com",
+            "Quality Manager",
+            "CJ",
+            UserRole.PENDRAGON_ADMIN,
+            pendragon,
+        ),
+        (
+            "Richard",
+            "Johns",
+            "richard@pendragonscientific.com",
+            "Director",
+            "RJH",
+            UserRole.PENDRAGON_MANAGER,
+            pendragon,
+        ),
+        (
+            "Remi",
+            "Guest",
+            "remi@pendragonscientific.com",
+            "Workshop Manager",
+            "RG",
+            UserRole.PENDRAGON_MANAGER,
+            pendragon,
+        ),
+        (
+            "Russell",
+            "Page",
+            "russell@pendragonscientific.com",
+            "Field Service Engineer",
+            "RP",
+            UserRole.PENDRAGON_ENGINEER,
+            pendragon,
+        ),
+        (
+            "Jake",
+            "Simons",
+            "jake@pendragonscientific.com",
+            "Field Service Engineer",
+            "JS",
+            UserRole.PENDRAGON_ENGINEER,
+            pendragon,
+        ),
+        (
+            "Sarah",
+            "Ostler",
+            "sarah@pendragonscientific.com",
+            "Office Administrator",
+            "SO",
+            UserRole.PENDRAGON_OFFICE_ADMIN,
+            pendragon,
+        ),
+        (
+            "Ashleigh",
+            "Skinner",
+            "ashleigh@pendragonscientific.com",
+            "Office Manager",
+            "AS",
+            UserRole.PENDRAGON_OFFICE_ADMIN,
+            pendragon,
+        ),
+        (
+            "John",
+            "Williams",
+            "john.williams@oxford.example.com",
+            "Laboratory Manager",
+            "JW",
+            UserRole.CUSTOMER_USER,
+            oxford,
+        ),
+        (
+            "Emily",
+            "Carter",
+            "emily.carter@oxford.example.com",
+            "Senior Technician",
+            "EC",
+            UserRole.CUSTOMER_USER,
+            oxford,
+        ),
+        (
+            "Sarah",
+            "Collins",
+            "sarah.collins@nhsbristol.example.com",
+            "Biomedical Engineer",
+            "SC",
+            UserRole.CUSTOMER_USER,
+            nhs,
+        ),
+        (
+            "Daniel",
+            "Green",
+            "daniel.green@nhsbristol.example.com",
+            "Laboratory Supervisor",
+            "DG",
+            UserRole.CUSTOMER_USER,
+            nhs,
+        ),
+        (
+            "Lisa",
+            "Turner",
+            "lisa.turner@biolab.example.com",
+            "Research Scientist",
+            "LT",
+            UserRole.CUSTOMER_USER,
+            biolab,
+        ),
+        (
+            "Michael",
+            "Harris",
+            "michael.harris@biolab.example.com",
+            "Laboratory Manager",
+            "MH",
+            UserRole.CUSTOMER_USER,
+            biolab,
+        ),
     ]
 
-    for first_name, last_name, email, role, company in users:
+    for (
+        first_name,
+        last_name,
+        email,
+        job_title,
+        sir_initials,
+        role,
+        company,
+    ) in users:
         existing_user = session.query(User).filter_by(email=email).first()
 
         if existing_user is None:
@@ -66,6 +191,8 @@ def seed_users(session):
                     first_name=first_name,
                     last_name=last_name,
                     email=email.lower(),
+                    job_title=job_title,
+                    sir_initials=sir_initials,
                     role=role,
                     company_id=company.id,
                     is_active=True,
@@ -129,23 +256,14 @@ def seed_equipment(session):
     ]
 
     for company_name, email, make, model, serial in equipment:
-
-        existing = (
-            session.query(Equipment)
-            .filter_by(serial_number=serial)
-            .first()
-        )
+        existing = session.query(Equipment).filter_by(serial_number=serial).first()
 
         if existing:
             continue
 
         company = get_company(session, company_name)
 
-        contact = (
-            session.query(User)
-            .filter_by(email=email)
-            .one()
-        )
+        contact = session.query(User).filter_by(email=email).one()
 
         session.add(
             Equipment(
@@ -187,7 +305,6 @@ def seed_service_jobs(session):
     ]
 
     for company_name, reference, job_type, status, description in jobs:
-
         existing = (
             session.query(ServiceJob)
             .filter_by(reference_number=reference)

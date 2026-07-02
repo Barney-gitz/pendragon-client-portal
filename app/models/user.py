@@ -22,11 +22,31 @@ class User(BaseModel):
         nullable=False,
     )
 
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
 
-    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    first_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
 
-    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    job_title: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    sir_initials: Mapped[str] = mapped_column(
+        String(10),
+        nullable=False,
+    )
 
     role: Mapped[UserRole] = mapped_column(
         SqlEnum(UserRole, name="user_role"),
