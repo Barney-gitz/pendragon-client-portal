@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table('equipment',
     sa.Column('company_id', sa.Integer(), nullable=False),
     sa.Column('primary_contact_user_id', sa.Integer(), nullable=False),
-    sa.Column('manufacturer', sa.String(length=255), nullable=False),
+    sa.Column('make', sa.String(length=255), nullable=False),
     sa.Column('model', sa.String(length=255), nullable=False),
     sa.Column('serial_number', sa.String(length=255), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),

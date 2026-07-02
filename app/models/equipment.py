@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
 
@@ -17,10 +17,24 @@ class Equipment(BaseModel):
         nullable=False,
     )
 
-    manufacturer: Mapped[str] = mapped_column(String(255), nullable=False)
+    make: Mapped[str] = mapped_column(String(255), nullable=False)
 
     model: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    serial_number: Mapped[str] = mapped_column(String(255), nullable=False)
+    serial_number: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    company = relationship("Company", back_populates="equipment")
+
+    primary_contact = relationship(
+        "User",
+        back_populates="primary_equipment",
+        foreign_keys=[primary_contact_user_id],
+    )
+
+    service_job_items = relationship("ServiceJobItem", back_populates="equipment")

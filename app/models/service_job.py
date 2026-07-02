@@ -1,7 +1,7 @@
 from enum import Enum
 
 from sqlalchemy import Boolean, Enum as SqlEnum, ForeignKey, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
 
@@ -53,3 +53,6 @@ class ServiceJob(BaseModel):
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    company = relationship("Company", back_populates="service_jobs")
+    items = relationship("ServiceJobItem", back_populates="service_job")
