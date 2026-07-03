@@ -1,3 +1,8 @@
+pytest_plugins = [
+    "tests.fixtures.companies",
+    "tests.fixtures.users",
+]
+
 import pytest
 from fastapi.testclient import TestClient
 

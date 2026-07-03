@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-TEST_DATABASE_URL = settings.database_url
+TEST_DATABASE_URL = settings.test_database_url
 
 engine = create_engine(TEST_DATABASE_URL)
 

@@ -5,13 +5,13 @@ from tests.factories.user_factory import create_user
 
 
 @pytest.fixture
-def admin_user(db):
+def admin_user(db, company):
     user = create_user(
         email="admin@test.com",
         first_name="Test",
         last_name="Admin",
         role=UserRole.PENDRAGON_ADMIN,
-        company_id=1,
+        company_id=company.id,
     )
 
     db.add(user)
