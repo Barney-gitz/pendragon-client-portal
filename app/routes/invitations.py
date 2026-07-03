@@ -10,6 +10,9 @@ from app.schemas.invitation import (
 )
 from app.services.invitation_service import create_user_invitation
 from app.models.user_invitation import UserInvitation
+from app.auth.permissions import require_roles
+from app.models.user import User, UserRole
+
 
 router = APIRouter(
     prefix="/companies",
@@ -24,6 +27,9 @@ def invite_user(
     company_id: int,
     payload: UserInvitationCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles(UserRole.PENDRAGON_ADMIN)
+    ),
 ):
     try:
         _, raw_token = create_user_invitation(
@@ -33,7 +39,7 @@ def invite_user(
             last_name=payload.last_name,
             email=payload.email,
             role=payload.role,
-            invited_by_user_id=1,  # Temporary until authentication exists
+            invited_by_user_id=current_user.id,
         )
 
     except UserAlreadyExistsError as exc:
@@ -49,7 +55,10 @@ def invite_user(
     )
 
 @router.get("/invitations")
-def list_invitations(db: Session = Depends(get_db)):
+def list_invitations(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(UserRole.PENDRAGON_ADMIN)),
+):
     invitations = (
         db.query(UserInvitation)
         .order_by(UserInvitation.created_at.desc())
