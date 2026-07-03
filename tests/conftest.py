@@ -5,21 +5,35 @@ pytest_plugins = [
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import event
+from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.main import app
-from tests.database import TestingSessionLocal
+from tests.database import engine
 
 
 @pytest.fixture
 def db():
-    session = TestingSessionLocal()
+    connection = engine.connect()
+    transaction = connection.begin()
+
+    session = Session(bind=connection)
+
+    session.begin_nested()
+
+    @event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(session, transaction):
+        if transaction.nested and not transaction._parent.nested:
+            session.begin_nested()
 
     try:
         yield session
 
     finally:
         session.close()
+        transaction.rollback()
+        connection.close()
 
 
 @pytest.fixture
