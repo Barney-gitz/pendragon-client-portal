@@ -1,12 +1,15 @@
 from app.db.session import SessionLocal
 from app.models.company import Company
 from app.models.equipment import Equipment
+from datetime import datetime, timezone
+import re
 from app.models.service_job import (
     JobStatus,
     JobType,
     ServiceJob,
 )
 from app.models.user import User, UserRole
+from app.models.service_job_item import ServiceJobItem
 
 
 def seed_companies(session):
@@ -28,6 +31,30 @@ def seed_companies(session):
 
 def get_company(session, name: str) -> Company:
     return session.query(Company).filter_by(name=name).one()
+
+
+def get_user(session, email: str) -> User:
+    return session.query(User).filter_by(email=email.lower()).one()
+
+
+def get_equipment(session, serial_number: str) -> Equipment:
+    return session.query(Equipment).filter_by(serial_number=serial_number).one()
+
+
+def get_service_job(session, reference_number: str) -> ServiceJob:
+    return (
+        session.query(ServiceJob)
+        .filter_by(reference_number=reference_number)
+        .one()
+    )
+
+
+def generate_sir(started_at: datetime, engineer: User, equipment: Equipment) -> str:
+    date_part = started_at.strftime("%d%m%y")
+    cleaned_serial = re.sub(r"[^A-Za-z0-9]", "", equipment.serial_number)
+    serial_suffix = cleaned_serial[-4:]
+
+    return f"{date_part}{engineer.sir_initials}{serial_suffix}"
 
 
 def seed_users(session):
@@ -330,6 +357,106 @@ def seed_service_jobs(session):
     session.commit()
 
 
+def seed_service_job_items(session):
+    started_at = datetime(2026, 7, 2, 9, 0, tzinfo=timezone.utc)
+    completed_at = datetime(2026, 7, 2, 16, 30, tzinfo=timezone.utc)
+
+    items = [
+        (
+            "JOB-2026-0001",
+            "TS-10293",
+            "john.williams@oxford.example.com",
+            "jake@pendragonscientific.com",
+            started_at,
+            completed_at,
+        ),
+        (
+            "JOB-2026-0001",
+            "EP-5810-42",
+            "emily.carter@oxford.example.com",
+            "jake@pendragonscientific.com",
+            started_at,
+            completed_at,
+        ),
+        (
+            "JOB-2026-0001",
+            "SA-78213",
+            "john.williams@oxford.example.com",
+            "russell@pendragonscientific.com",
+            started_at,
+            completed_at,
+        ),
+        (
+            "JOB-2026-0002",
+            "BD-55671",
+            "daniel.green@nhsbristol.example.com",
+            "russell@pendragonscientific.com",
+            datetime(2026, 7, 10, 10, 0, tzinfo=timezone.utc),
+            None,
+        ),
+        (
+            "JOB-2026-0003",
+            "LC-88342",
+            "lisa.turner@biolab.example.com",
+            None,
+            None,
+            None,
+        ),
+    ]
+
+    for (
+        reference_number,
+        serial_number,
+        contact_email,
+        engineer_email,
+        item_started_at,
+        item_completed_at,
+    ) in items:
+        service_job = get_service_job(session, reference_number)
+        equipment = get_equipment(session, serial_number)
+        contact_user = get_user(session, contact_email)
+
+        existing = (
+            session.query(ServiceJobItem)
+            .filter_by(
+                service_job_id=service_job.id,
+                equipment_id=equipment.id,
+            )
+            .first()
+        )
+
+        if existing:
+            continue
+
+        assigned_engineer = (
+            get_user(session, engineer_email)
+            if engineer_email is not None
+            else None
+        )
+
+        sir_number = (
+            generate_sir(item_started_at, assigned_engineer, equipment)
+            if item_started_at is not None and assigned_engineer is not None
+            else None
+        )
+
+        session.add(
+            ServiceJobItem(
+                service_job_id=service_job.id,
+                equipment_id=equipment.id,
+                contact_user_id=contact_user.id,
+                assigned_engineer_id=(
+                    assigned_engineer.id if assigned_engineer is not None else None
+                ),
+                sir_number=sir_number,
+                started_at=item_started_at,
+                completed_at=item_completed_at,
+            )
+        )
+
+    session.commit()
+
+
 def main():
     session = SessionLocal()
 
@@ -338,6 +465,7 @@ def main():
         seed_users(session)
         seed_equipment(session)
         seed_service_jobs(session)
+        seed_service_job_items(session)
     finally:
         session.close()
 

@@ -1,26 +1,22 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
+from app.db.session import get_db
 from app.models.company import Company
+from app.schemas.company import CompanyResponse
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
 
-@router.get("")
-def list_companies():
-    session = SessionLocal()
+@router.get(
+    "",
+    response_model=list[CompanyResponse],
+)
+def list_companies(db: Session = Depends(get_db)):
+    companies = (
+        db.query(Company)
+        .order_by(Company.name)
+        .all()
+    )
 
-    try:
-        companies = session.query(Company).order_by(Company.name).all()
-
-        return [
-            {
-                "id": company.id,
-                "name": company.name,
-                "is_active": company.is_active,
-            }
-            for company in companies
-        ]
-
-    finally:
-        session.close()
+    return companies
