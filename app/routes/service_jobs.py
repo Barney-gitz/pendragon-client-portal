@@ -1,20 +1,26 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 
+from app.auth.dependencies import get_current_user
 from app.db.session import get_db
-from app.models.service_job import ServiceJob
+from app.models.user import User
 from app.schemas.service_job import ServiceJobDetailResponse
+from app.services.service_job_service import (
+    get_service_job_for_user,
+    list_service_jobs_for_user,
+)
 
 router = APIRouter(prefix="/service-jobs", tags=["service-jobs"])
 
 
 @router.get("")
-def list_service_jobs(db: Session = Depends(get_db)):
-    jobs = (
-        db.query(ServiceJob)
-        .order_by(ServiceJob.reference_number)
-        .all()
+def list_service_jobs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    jobs = list_service_jobs_for_user(
+        db=db,
+        current_user=current_user,
     )
 
     return [
@@ -37,11 +43,12 @@ def list_service_jobs(db: Session = Depends(get_db)):
 def get_service_job(
     job_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    job = (
-        db.query(ServiceJob)
-        .filter(ServiceJob.id == job_id)
-        .first()
+    job = get_service_job_for_user(
+        db=db,
+        job_id=job_id,
+        current_user=current_user,
     )
 
     if job is None:

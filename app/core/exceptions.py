@@ -24,3 +24,6 @@ class InvitationAlreadyAcceptedError(AuthenticationError):
 
 class InvitationInvalidatedError(AuthenticationError):
     """Raised when an invitation has been superseded."""
+
+class InvalidCredentialsError(AuthenticationError):
+    """Raised when login credentials are invalid."""
