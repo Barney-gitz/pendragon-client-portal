@@ -1,6 +1,7 @@
 pytest_plugins = [
     "tests.fixtures.companies",
     "tests.fixtures.users",
+    "tests.fixtures.auth",
 ]
 
 import pytest
