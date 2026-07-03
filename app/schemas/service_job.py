@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ServiceJobItemResponse(BaseModel):
@@ -17,9 +17,25 @@ class ServiceJobItemResponse(BaseModel):
     started_at: datetime | None
     completed_at: datetime | None
 
-    model_config = {
-        "from_attributes": True,
-    }
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceJobSummaryResponse(BaseModel):
+    id: int
+
+    reference_number: str
+
+    company: str
+
+    job_type: str
+
+    status: str
+
+    description: str
+
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ServiceJobDetailResponse(BaseModel):
@@ -37,6 +53,4 @@ class ServiceJobDetailResponse(BaseModel):
 
     items: list[ServiceJobItemResponse]
 
-    model_config = {
-        "from_attributes": True,
-    }
+    model_config = ConfigDict(from_attributes=True)

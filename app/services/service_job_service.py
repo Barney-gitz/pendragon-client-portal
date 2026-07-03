@@ -2,28 +2,81 @@ from sqlalchemy.orm import Session
 
 from app.models.service_job import ServiceJob
 from app.models.user import User
+from app.schemas.service_job import (
+    ServiceJobItemResponse,
+    ServiceJobSummaryResponse,
+    ServiceJobDetailResponse,
+)
 
 
 def list_service_jobs_for_user(
     db: Session,
     current_user: User,
-) -> list[ServiceJob]:
-    return (
+) -> list[ServiceJobSummaryResponse]:
+    jobs = (
         db.query(ServiceJob)
         .filter(ServiceJob.company_id == current_user.company_id)
         .order_by(ServiceJob.reference_number)
         .all()
     )
 
+    return [
+        ServiceJobSummaryResponse(
+            id=job.id,
+            reference_number=job.reference_number,
+            company=job.company.name,
+            job_type=job.job_type.value,
+            status=job.status.value,
+            description=job.description,
+            is_active=job.is_active,
+        )
+        for job in jobs
+    ]
+
 
 def get_service_job_for_user(
     db: Session,
     job_id: int,
     current_user: User,
-) -> ServiceJob | None:
-    return (
+) -> ServiceJobDetailResponse | None:
+    job = (
         db.query(ServiceJob)
         .filter(ServiceJob.id == job_id)
         .filter(ServiceJob.company_id == current_user.company_id)
         .first()
+    )
+
+    if job is None:
+        return None
+
+    return ServiceJobDetailResponse(
+        id=job.id,
+        reference_number=job.reference_number,
+        company=job.company.name,
+        job_type=job.job_type.value,
+        status=job.status.value,
+        description=job.description,
+        items=[
+            ServiceJobItemResponse(
+                make=item.equipment.make,
+                model=item.equipment.model,
+                serial_number=item.equipment.serial_number,
+                contact_name=(
+                    f"{item.contact_user.first_name} "
+                    f"{item.contact_user.last_name}"
+                ),
+                assigned_engineer=(
+                    None
+                    if item.assigned_engineer is None
+                    else (
+                        f"{item.assigned_engineer.first_name} "
+                        f"{item.assigned_engineer.last_name}"
+                    )
+                ),
+                sir_number=item.sir_number,
+                started_at=item.started_at,
+                completed_at=item.completed_at,
+            )
+            for item in job.items
+        ],
     )
