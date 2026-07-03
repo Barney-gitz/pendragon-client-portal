@@ -4,6 +4,7 @@ from app.models.equipment import Equipment
 from app.models.service_job import JobStatus, JobType, ServiceJob
 from app.models.service_job_item import ServiceJobItem
 from app.models.user import User, UserRole
+from app.models.user_invitation import UserInvitation
 
 __all__ = [
     "Base",

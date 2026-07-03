@@ -11,6 +11,8 @@ dependencies = [
     "pydantic-settings",
     "pytest",
     "alembic",
+    "email-validator",
+    "argon2-cffi",
     "httpx"
 ]
 

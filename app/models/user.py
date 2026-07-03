@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import datetime
 
 from sqlalchemy import Boolean, Enum as SqlEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -28,6 +29,25 @@ class User(BaseModel):
         nullable=False,
     )
 
+    password_hash: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    is_email_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    activated_at: Mapped[datetime | None] = mapped_column(
+        nullable=True,
+    )
+
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        nullable=True,
+    )
+
     first_name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
@@ -38,14 +58,14 @@ class User(BaseModel):
         nullable=False,
     )
 
-    job_title: Mapped[str] = mapped_column(
+    job_title: Mapped[str | None] = mapped_column(
         String(100),
-        nullable=False,
+        nullable=True,
     )
 
-    sir_initials: Mapped[str] = mapped_column(
+    sir_initials: Mapped[str | None] = mapped_column(
         String(10),
-        nullable=False,
+        nullable=True,
     )
 
     role: Mapped[UserRole] = mapped_column(
