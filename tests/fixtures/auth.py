@@ -21,3 +21,8 @@ def login_test_user(client, user):
 @pytest.fixture
 def admin_client(client, admin_user):
     return login_test_user(client, admin_user)
+
+
+@pytest.fixture
+def engineer_client(client, engineer_user):
+    return login_test_user(client, engineer_user)
