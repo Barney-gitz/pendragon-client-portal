@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 
 from app.models.service_job import ServiceJob
-from app.models.user import User
+from app.models.user import User, UserRole
+from app.models.service_job_item import ServiceJobItem
 from app.schemas.service_job import (
     ServiceJobItemResponse,
     ServiceJobSummaryResponse,
@@ -13,9 +14,26 @@ def list_service_jobs_for_user(
     db: Session,
     current_user: User,
 ) -> list[ServiceJobSummaryResponse]:
+    query = db.query(ServiceJob)
+
+    if current_user.role == UserRole.PENDRAGON_ADMIN:
+        pass
+
+    elif current_user.role == UserRole.PENDRAGON_ENGINEER:
+        query = (
+            query
+            .join(ServiceJobItem)
+            .filter(ServiceJobItem.assigned_engineer_id == current_user.id)
+        )
+
+    else:
+        query = query.filter(
+            ServiceJob.company_id == current_user.company_id
+        )
+
     jobs = (
-        db.query(ServiceJob)
-        .filter(ServiceJob.company_id == current_user.company_id)
+        query
+        .distinct()
         .order_by(ServiceJob.reference_number)
         .all()
     )
