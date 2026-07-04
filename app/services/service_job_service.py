@@ -3,6 +3,11 @@ from sqlalchemy.orm import Session
 from app.models.service_job import ServiceJob
 from app.models.user import User, UserRole
 from app.models.service_job_item import ServiceJobItem
+from app.models.service_job_timeline import ServiceJobTimeline
+from app.schemas.service_job_timeline import ServiceJobTimelineResponse
+from app.models.company import Company
+from app.models.service_job import JobStatus, JobType
+from app.services.service_job_timeline_service import create_timeline_entry
 from app.schemas.service_job import (
     ServiceJobItemResponse,
     ServiceJobSummaryResponse,
@@ -98,3 +103,85 @@ def get_service_job_for_user(
             for item in job.items
         ],
     )
+
+
+def list_service_job_timeline_for_user(
+    db: Session,
+    job_id: int,
+    current_user: User,
+) -> list[ServiceJobTimelineResponse] | None:
+    job = (
+        db.query(ServiceJob)
+        .filter(ServiceJob.id == job_id)
+        .filter(ServiceJob.company_id == current_user.company_id)
+        .first()
+    )
+
+    if job is None:
+        return None
+
+    timeline_entries = (
+        db.query(ServiceJobTimeline)
+        .filter(ServiceJobTimeline.service_job_id == job.id)
+        .order_by(ServiceJobTimeline.created_at)
+        .all()
+    )
+
+    return [
+        ServiceJobTimelineResponse(
+            id=entry.id,
+            status=entry.status.value,
+            notes=entry.notes,
+            created_by=(
+                f"{entry.created_by_user.first_name} "
+                f"{entry.created_by_user.last_name}"
+            ),
+            created_at=entry.created_at,
+        )
+        for entry in timeline_entries
+    ]
+
+
+def create_service_job(
+    db: Session,
+    *,
+    company_id: int,
+    reference_number: str,
+    job_type: JobType,
+    description: str,
+    current_user: User,
+) -> ServiceJob:
+    company = (
+        db.query(Company)
+        .filter(Company.id == company_id)
+        .filter(Company.is_active.is_(True))
+        .first()
+    )
+
+    if company is None:
+        raise ValueError("Company not found.")
+
+    service_job = ServiceJob(
+        company_id=company_id,
+        reference_number=reference_number,
+        job_type=job_type,
+        status=JobStatus.RECEIVED,
+        description=description,
+        is_active=True,
+    )
+
+    db.add(service_job)
+    db.flush()
+
+    create_timeline_entry(
+        db=db,
+        service_job=service_job,
+        status=JobStatus.RECEIVED,
+        user=current_user,
+        notes="Service job created.",
+    )
+
+    db.commit()
+    db.refresh(service_job)
+
+    return service_job

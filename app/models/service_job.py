@@ -56,3 +56,10 @@ class ServiceJob(BaseModel):
 
     company = relationship("Company", back_populates="service_jobs")
     items = relationship("ServiceJobItem", back_populates="service_job")
+    timeline_entries = relationship(
+        "ServiceJobTimeline",
+        back_populates="service_job",
+        cascade="all, delete-orphan",
+    )
+
+    

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from app.models.service_job import JobType
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -54,3 +56,10 @@ class ServiceJobDetailResponse(BaseModel):
     items: list[ServiceJobItemResponse]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ServiceJobCreate(BaseModel):
+    company_id: int
+    reference_number: str
+    job_type: JobType
+    description: str
