@@ -7,6 +7,7 @@ from app.models.user import User, UserRole
 from app.models.user_invitation import UserInvitation
 from app.models.user_session import UserSession
 from app.models.service_job_timeline import ServiceJobTimeline
+from app.models.audit_log import AuditLog
 
 __all__ = [
     "Base",
