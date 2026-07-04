@@ -82,3 +82,38 @@ def test_engineer_cannot_create_service_job(
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+from app.models.audit_log import AuditAction, AuditCategory, AuditLog
+
+
+def test_creating_service_job_creates_audit_log(
+    admin_client,
+    db,
+    company,
+):
+    payload = {
+        "company_id": company.id,
+        "reference_number": "SJ-1003",
+        "job_type": "onsite_service",
+        "description": "Audit test.",
+    }
+
+    response = admin_client.post(
+        "/service-jobs",
+        json=payload,
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    audit = (
+        db.query(AuditLog)
+        .filter(AuditLog.entity_type == "service_job")
+        .filter(AuditLog.action == AuditAction.CREATE)
+        .first()
+    )
+
+    assert audit is not None
+    assert audit.category == AuditCategory.BUSINESS
+    assert audit.entity_id is not None
+    assert audit.new_values["reference_number"] == "SJ-1003"

@@ -1,13 +1,18 @@
 from sqlalchemy.orm import Session
 
-from app.models.service_job import ServiceJob
+from app.models.service_job import JobStatus, JobType, ServiceJob
 from app.models.user import User, UserRole
 from app.models.service_job_item import ServiceJobItem
 from app.models.service_job_timeline import ServiceJobTimeline
 from app.schemas.service_job_timeline import ServiceJobTimelineResponse
 from app.models.company import Company
-from app.models.service_job import JobStatus, JobType
 from app.services.service_job_timeline_service import create_timeline_entry
+from app.models.audit_log import AuditAction, AuditCategory
+from app.services.audit_service import record_service_job_updated
+from app.services.audit_service import (
+    record_audit_event,
+    record_service_job_created,
+)
 from app.schemas.service_job import (
     ServiceJobItemResponse,
     ServiceJobSummaryResponse,
@@ -181,7 +186,57 @@ def create_service_job(
         notes="Service job created.",
     )
 
+    record_service_job_created(
+        db=db,
+        service_job=service_job,
+        actor=current_user,
+    )
+
     db.commit()
     db.refresh(service_job)
 
     return service_job
+
+
+def update_service_job(
+    db: Session,
+    *,
+    job_id: int,
+    status: JobStatus,
+    notes: str | None,
+    current_user: User,
+) -> ServiceJob | None:
+    job = (
+        db.query(ServiceJob)
+        .filter(ServiceJob.id == job_id)
+        .filter(ServiceJob.company_id == current_user.company_id)
+        .first()
+    )
+
+    if job is None:
+        return None
+
+    old_status = job.status
+
+    if old_status != status:
+        job.status = status
+
+        create_timeline_entry(
+            db=db,
+            service_job=job,
+            status=status,
+            user=current_user,
+            notes=notes,
+        )
+
+        record_service_job_updated(
+            db=db,
+            service_job=job,
+            actor=current_user,
+            old_status=old_status,
+        )
+
+    db.commit()
+    db.refresh(job)
+
+    return job

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from app.models.service_job import JobType
+from app.models.service_job import JobStatus, JobType
 
 from pydantic import BaseModel, ConfigDict
 
@@ -63,3 +63,7 @@ class ServiceJobCreate(BaseModel):
     reference_number: str
     job_type: JobType
     description: str
+
+class ServiceJobUpdate(BaseModel):
+    status: JobStatus
+    notes: str | None = None
