@@ -1,9 +1,21 @@
 from datetime import datetime
+from enum import Enum
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Enum as SqlEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
+
+
+class ServiceJobItemStatus(str, Enum):
+    PENDING = "pending"
+    ASSIGNED = "assigned"
+    IN_PROGRESS = "in_progress"
+    AWAITING_PARTS = "awaiting_parts"
+    TESTING = "testing"
+    READY_FOR_RETURN = "ready_for_return"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
 
 
 class ServiceJobItem(BaseModel):
@@ -17,6 +29,12 @@ class ServiceJobItem(BaseModel):
     equipment_id: Mapped[int] = mapped_column(
         ForeignKey("equipment.id"),
         nullable=False,
+    )
+
+    status: Mapped[ServiceJobItemStatus] = mapped_column(
+        SqlEnum(ServiceJobItemStatus, name="service_job_item_status"),
+        nullable=False,
+        default=ServiceJobItemStatus.PENDING,
     )
 
     contact_user_id: Mapped[int] = mapped_column(

@@ -2,6 +2,7 @@ pytest_plugins = [
     "tests.fixtures.companies",
     "tests.fixtures.users",
     "tests.fixtures.auth",
+     "tests.fixtures.equipment",
 ]
 
 import pytest
