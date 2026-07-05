@@ -7,11 +7,9 @@ from app.models.service_job_timeline import ServiceJobTimeline
 from app.schemas.service_job_timeline import ServiceJobTimelineResponse
 from app.models.company import Company
 from app.services.service_job_timeline_service import create_timeline_entry
-from app.models.audit_log import AuditAction, AuditCategory
-from app.services.audit_service import record_service_job_updated
 from app.services.audit_service import (
-    record_audit_event,
     record_service_job_created,
+    record_service_job_updated,
 )
 from app.schemas.service_job import (
     ServiceJobItemResponse,
@@ -20,26 +18,37 @@ from app.schemas.service_job import (
 )
 
 
+def _service_jobs_visible_to_user(
+    db: Session,
+    current_user: User,
+):
+    query = db.query(ServiceJob)
+
+    if current_user.role == UserRole.PENDRAGON_ADMIN:
+        return query
+
+    if current_user.role == UserRole.PENDRAGON_ENGINEER:
+        return (
+            query
+            .join(ServiceJobItem)
+            .filter(
+                ServiceJobItem.assigned_engineer_id == current_user.id
+            )
+        )
+
+    return query.filter(
+        ServiceJob.company_id == current_user.company_id
+    )
+
+
 def list_service_jobs_for_user(
     db: Session,
     current_user: User,
 ) -> list[ServiceJobSummaryResponse]:
-    query = db.query(ServiceJob)
-
-    if current_user.role == UserRole.PENDRAGON_ADMIN:
-        pass
-
-    elif current_user.role == UserRole.PENDRAGON_ENGINEER:
-        query = (
-            query
-            .join(ServiceJobItem)
-            .filter(ServiceJobItem.assigned_engineer_id == current_user.id)
-        )
-
-    else:
-        query = query.filter(
-            ServiceJob.company_id == current_user.company_id
-        )
+    query = _service_jobs_visible_to_user(
+        db=db,
+        current_user=current_user,
+    )
 
     jobs = (
         query
@@ -68,9 +77,11 @@ def get_service_job_for_user(
     current_user: User,
 ) -> ServiceJobDetailResponse | None:
     job = (
-        db.query(ServiceJob)
+        _service_jobs_visible_to_user(
+            db=db,
+            current_user=current_user,
+        )
         .filter(ServiceJob.id == job_id)
-        .filter(ServiceJob.company_id == current_user.company_id)
         .first()
     )
 
@@ -207,9 +218,11 @@ def update_service_job(
     current_user: User,
 ) -> ServiceJob | None:
     job = (
-        db.query(ServiceJob)
+        _service_jobs_visible_to_user(
+            db=db,
+            current_user=current_user,
+        )
         .filter(ServiceJob.id == job_id)
-        .filter(ServiceJob.company_id == current_user.company_id)
         .first()
     )
 
