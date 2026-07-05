@@ -8,6 +8,10 @@ from app.services.history.builders.machine_logged import (
     build_machine_logged_events,
 )
 
+from app.services.history.builders.machine_completed import (
+    build_machine_completed_events,
+)
+
 
 def get_equipment_history_for_user(
     db: Session,
@@ -32,7 +36,9 @@ def get_equipment_history_for_user(
         .all()
     )
 
-    events = build_machine_logged_events(items)
+    events = []
+    events.extend(build_machine_logged_events(items))
+    events.extend(build_machine_completed_events(items))
 
     events.sort(key=lambda event: event.occurred_at, reverse=True)
 
