@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -24,9 +26,12 @@ class EquipmentDetailResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-from datetime import datetime
 
 class EquipmentHistoryItemResponse(BaseModel):
+    type: str
+    title: str
+    occurred_at: datetime
+
     service_job_id: int
     service_job_item_id: int
     reference_number: str

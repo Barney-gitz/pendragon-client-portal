@@ -45,6 +45,10 @@ def test_can_view_equipment_history(
 
     assert history[0]["reference_number"] == "SJ-3000"
     assert history[0]["status"] == "completed"
+    assert history[0]["type"] == "machine_logged"
+    assert history[0]["title"] == "Machine logged for service"
+    assert history[0]["description"] == "History test"
+    assert history[0]["occurred_at"] is not None
 
 
 def test_unknown_equipment_returns_404(
