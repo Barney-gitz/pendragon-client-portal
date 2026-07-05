@@ -4,7 +4,9 @@ from app.models.equipment import Equipment
 from app.models.service_job_item import ServiceJobItem
 from app.models.user import User
 from app.schemas.equipment import EquipmentHistoryItemResponse
-from app.services.history.machine_logged_events import build_machine_logged_events
+from app.services.history.builders.machine_logged import (
+    build_machine_logged_events,
+)
 
 
 def get_equipment_history_for_user(
