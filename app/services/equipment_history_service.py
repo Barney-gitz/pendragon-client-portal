@@ -38,6 +38,7 @@ def get_equipment_history_for_user(
                 type="machine_logged",
                 title="Machine logged for service",
                 occurred_at=item.created_at,
+                actor=None,
                 payload={
                     "service_job_id": item.service_job.id,
                     "service_job_item_id": item.id,

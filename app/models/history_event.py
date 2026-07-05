@@ -16,5 +16,6 @@ class EquipmentHistoryEvent:
     type: str
     title: str
     occurred_at: datetime
+    actor: str | None
 
     payload: dict[str, Any]
