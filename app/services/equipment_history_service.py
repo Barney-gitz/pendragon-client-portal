@@ -1,57 +1,53 @@
-from sqlalchemy import select
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
 
 from app.models.equipment import Equipment
-from app.models.service_job import ServiceJob
 from app.models.service_job_item import ServiceJobItem
+from app.models.user import User
+from app.schemas.equipment import EquipmentHistoryItemResponse
 
 
-def get_equipment_history(
+def get_equipment_history_for_user(
     db: Session,
     equipment_id: int,
-    company_id: int,
-) -> list[dict]:
-    equipment = db.scalar(
-        select(Equipment).where(
-            Equipment.id == equipment_id,
-            Equipment.company_id == company_id,
-        )
+    current_user: User,
+) -> list[EquipmentHistoryItemResponse] | None:
+    equipment = (
+        db.query(Equipment)
+        .filter(Equipment.id == equipment_id)
+        .filter(Equipment.company_id == current_user.company_id)
+        .first()
     )
 
     if equipment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Equipment not found",
-        )
+        return None
 
-    jobs = (
-        db.execute(
-            select(ServiceJob)
-            .join(ServiceJobItem)
-            .where(
-                ServiceJobItem.equipment_id == equipment_id,
-                ServiceJob.company_id == company_id,
-            )
-            .order_by(ServiceJob.created_at.desc())
-        )
-        .scalars()
+    items = (
+        db.query(ServiceJobItem)
+        .filter(ServiceJobItem.equipment_id == equipment.id)
+        .join(ServiceJobItem.service_job)
+        .order_by(ServiceJobItem.created_at.desc())
         .all()
     )
 
-    history = []
-
-    for job in jobs:
-        history.append(
-            {
-                "type": "job",
-                "id": job.id,
-                "reference_number": job.reference_number,
-                "status": job.status.value,
-                "job_type": job.job_type.value,
-                "description": job.description,
-                "created_at": job.created_at,
-            }
+    return [
+        EquipmentHistoryItemResponse(
+            service_job_id=item.service_job.id,
+            service_job_item_id=item.id,
+            reference_number=item.service_job.reference_number,
+            job_type=item.service_job.job_type.value,
+            status=item.service_job.status.value,
+            description=item.service_job.description,
+            assigned_engineer=(
+                None
+                if item.assigned_engineer is None
+                else (
+                    f"{item.assigned_engineer.first_name} "
+                    f"{item.assigned_engineer.last_name}"
+                )
+            ),
+            started_at=item.started_at,
+            completed_at=item.completed_at,
+            created_at=item.created_at,
         )
-
-    return history
+        for item in items
+    ]

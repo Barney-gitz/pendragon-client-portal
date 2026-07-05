@@ -14,9 +14,9 @@ from app.schemas.equipment import (
 from app.services.equipment_service import (
     get_current_equipment_job_for_user,
     get_equipment_for_user,
-    get_equipment_history_for_user,
     list_equipment_for_user,
 )
+from app.services.equipment_history_service import get_equipment_history_for_user
 
 
 router = APIRouter(prefix="/equipment", tags=["equipment"])
