@@ -1,4 +1,6 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.models.equipment import Equipment
 from app.models.user import User
@@ -164,3 +166,44 @@ def get_current_equipment_job_for_user(
         started_at=item.started_at,
         created_at=item.created_at,
     )
+
+
+def get_equipment_history(
+    db: Session,
+    equipment_id: int,
+    company_id: int,
+) -> list[dict]:
+    equipment = db.scalar(
+        select(Equipment).where(
+            Equipment.id == equipment_id,
+            Equipment.company_id == company_id,
+        )
+    )
+
+    if equipment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Equipment not found",
+        )
+
+    jobs = db.execute(
+        select(ServiceJob)
+        .join(ServiceJobItem)
+        .where(
+            ServiceJobItem.equipment_id == equipment_id,
+            ServiceJob.company_id == company_id,
+        )
+        .order_by(ServiceJob.created_at.desc())
+    ).scalars().all()
+
+    return [
+        {
+            "id": job.id,
+            "reference_number": job.reference_number,
+            "status": job.status.value,
+            "job_type": job.job_type.value,
+            "description": job.description,
+            "created_at": job.created_at,
+        }
+        for job in jobs
+    ]
