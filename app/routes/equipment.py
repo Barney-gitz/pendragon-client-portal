@@ -73,19 +73,6 @@ def get_equipment_history(
     return history
 
 
-@router.get("/{equipment_id}/history")
-def get_equipment_history(
-    equipment_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return equipment_service.get_equipment_history(
-        db=db,
-        equipment_id=equipment_id,
-        company_id=current_user.company_id,
-    )
-
-
 @router.get(
     "/{equipment_id}",
     response_model=EquipmentDetailResponse,
