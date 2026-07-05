@@ -71,3 +71,9 @@ class ServiceJobItem(BaseModel):
         back_populates="assigned_job_items",
         foreign_keys=[assigned_engineer_id],
     )
+
+    timeline_entries = relationship(
+    "ServiceJobItemTimeline",
+    back_populates="service_job_item",
+    cascade="all, delete-orphan",
+)

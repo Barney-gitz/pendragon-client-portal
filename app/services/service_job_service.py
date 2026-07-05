@@ -2,11 +2,11 @@ from sqlalchemy.orm import Session
 
 from app.models.service_job import JobStatus, JobType, ServiceJob
 from app.models.user import User, UserRole
-from app.models.service_job_item import ServiceJobItem
 from app.models.service_job_timeline import ServiceJobTimeline
 from app.schemas.service_job_timeline import ServiceJobTimelineResponse
 from app.models.company import Company
 from app.services.service_job_timeline_service import create_timeline_entry
+from app.services.service_job_item_service import update_job_item_status
 from app.services.audit_service import (
     record_service_job_created,
     record_service_job_updated,
@@ -15,6 +15,10 @@ from app.schemas.service_job import (
     ServiceJobItemResponse,
     ServiceJobSummaryResponse,
     ServiceJobDetailResponse,
+)
+from app.models.service_job_item import (
+    ServiceJobItem,
+    ServiceJobItemStatus,
 )
 
 
@@ -112,6 +116,7 @@ def get_service_job_for_user(
                         f"{item.assigned_engineer.last_name}"
                     )
                 ),
+                status=item.status.value,
                 sir_number=item.sir_number,
                 started_at=item.started_at,
                 completed_at=item.completed_at,
@@ -253,3 +258,38 @@ def update_service_job(
     db.refresh(job)
 
     return job
+
+
+def update_service_job_item(
+    db: Session,
+    *,
+    item_id: int,
+    status: ServiceJobItemStatus,
+    notes: str | None,
+    current_user: User,
+) -> ServiceJobItem | None:
+    item = (
+        db.query(ServiceJobItem)
+        .join(ServiceJob)
+        .filter(ServiceJobItem.id == item_id)
+        .filter(ServiceJob.company_id == current_user.company_id)
+        .first()
+    )
+
+    if item is None:
+        return None
+
+    old_status = item.status
+
+    if old_status != status:
+        update_job_item_status(
+            db=db,
+            job_item=item,
+            status=status,
+            user=current_user,
+        )
+
+    db.commit()
+    db.refresh(item)
+
+    return item

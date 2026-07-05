@@ -98,3 +98,13 @@ class User(BaseModel):
         back_populates="assigned_engineer",
         foreign_keys="ServiceJobItem.assigned_engineer_id",
     )
+
+    service_job_timeline_entries = relationship(
+        "ServiceJobTimeline",
+        back_populates="created_by_user",
+    )
+
+    service_job_item_timeline_entries = relationship(
+        "ServiceJobItemTimeline",
+        back_populates="created_by_user",
+    )

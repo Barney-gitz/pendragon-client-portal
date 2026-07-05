@@ -14,6 +14,8 @@ class ServiceJobItemResponse(BaseModel):
 
     assigned_engineer: str | None
 
+    status: str
+
     sir_number: str | None
 
     started_at: datetime | None

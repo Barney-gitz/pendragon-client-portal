@@ -11,6 +11,9 @@ from app.routes.dashboard import router as dashboard_router
 from app.routes.account_activation import (
     router as account_activation_router,
 )
+from app.routes.service_job_items import (
+    router as service_job_items_router,
+)
 
 app = FastAPI(title=settings.app_name)
 app.include_router(companies_router)
@@ -20,6 +23,7 @@ app.include_router(invitations_router)
 app.include_router(account_activation_router)
 app.include_router(auth_router)
 app.include_router(dashboard_router)
+app.include_router(service_job_items_router)
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
