@@ -108,3 +108,8 @@ class User(BaseModel):
         "ServiceJobItemTimeline",
         back_populates="created_by_user",
     )
+
+    service_job_item_notes = relationship(
+        "ServiceJobItemNote",
+        back_populates="author",
+    )

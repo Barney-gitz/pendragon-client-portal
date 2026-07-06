@@ -73,7 +73,12 @@ class ServiceJobItem(BaseModel):
     )
 
     timeline_entries = relationship(
-    "ServiceJobItemTimeline",
-    back_populates="service_job_item",
-    cascade="all, delete-orphan",
-)
+        "ServiceJobItemTimeline",
+        back_populates="service_job_item",
+        cascade="all, delete-orphan",
+    )
+
+    notes = relationship(
+        "ServiceJobItemNote",
+        back_populates="service_job_item",
+    )

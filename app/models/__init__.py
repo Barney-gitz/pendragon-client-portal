@@ -9,6 +9,7 @@ from app.models.user_session import UserSession
 from app.models.service_job_timeline import ServiceJobTimeline
 from app.models.audit_log import AuditLog
 from app.models.service_job_item_timeline import ServiceJobItemTimeline
+from app.models.service_job_item_note import ServiceJobItemNote
 
 __all__ = [
     "Base",
